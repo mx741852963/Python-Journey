@@ -7,6 +7,9 @@ name = "pypi"
 matplotlib = "*"
 pandas = "*"
 numpy = "*"
+ipykernel = "*"
+yt-dlp = {extras = ["default"], version = "*"}
+customtkinter = "*"
 
 [dev-packages]
 
