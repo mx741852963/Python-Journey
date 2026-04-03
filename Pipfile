@@ -10,6 +10,9 @@ numpy = "*"
 ipykernel = "*"
 yt-dlp = {extras = ["default"], version = "*"}
 customtkinter = "*"
+seaborn = "*"
+yfinance = "*"
+black = "*"
 
 [dev-packages]
 
