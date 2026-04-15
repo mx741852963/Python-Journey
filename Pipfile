@@ -13,6 +13,8 @@ customtkinter = "*"
 seaborn = "*"
 yfinance = "*"
 black = "*"
+pillow = "*"
+pyinstaller = "*"
 
 [dev-packages]
 
