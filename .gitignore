@@ -16,6 +16,9 @@ fun.txt
 test/
 test*.py
 All_Projects/
+data_gen.py
+
+
 
 # Media & Large Files
 *.jpg
@@ -28,7 +31,9 @@ All_Projects/
 *.xlsx
 *.xls
 *.csv
-
+*.log
+*.ico 
+*.txt
 # Databases
 *.db
 *.sqlite3
