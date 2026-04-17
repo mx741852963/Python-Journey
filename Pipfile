@@ -8,7 +8,7 @@ matplotlib = "*"
 pandas = "*"
 numpy = "*"
 ipykernel = "*"
-yt-dlp = {extras = ["default"], version = "*"}
+yt-dlp = { extras = ["default"], version = "*" }
 customtkinter = "*"
 seaborn = "*"
 yfinance = "*"
@@ -19,4 +19,4 @@ pyinstaller = "*"
 [dev-packages]
 
 [requires]
-python_version = "3.14"
+python_version = "3.12"
