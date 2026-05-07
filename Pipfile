@@ -15,6 +15,7 @@ yfinance = "*"
 black = "*"
 pillow = "*"
 pyinstaller = "*"
+manim = "*"
 
 [dev-packages]
 
