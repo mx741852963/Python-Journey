@@ -16,6 +16,9 @@ black = "*"
 pillow = "*"
 pyinstaller = "*"
 manim = "*"
+binarytree = "*"
+setuptools = "*"
+twentytab-tree = "*"
 
 [dev-packages]
 
