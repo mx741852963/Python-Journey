@@ -19,6 +19,7 @@ manim = "*"
 binarytree = "*"
 setuptools = "*"
 twentytab-tree = "*"
+openpyxl = "*"
 
 [dev-packages]
 
