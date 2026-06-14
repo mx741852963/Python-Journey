@@ -39,6 +39,8 @@ data_gen.py
 *.sqlite3
 *.sqlite
 *.sql
+*.wav
+.png
 
 # Python cache
 __pycache__/

@@ -13,13 +13,15 @@ customtkinter = "*"
 seaborn = "*"
 yfinance = "*"
 black = "*"
-pillow = "*"
 pyinstaller = "*"
 manim = "*"
 binarytree = "*"
 setuptools = "*"
 twentytab-tree = "*"
 openpyxl = "*"
+pillow = "*"
+pytmx = "*"
+pygame-ce = "*"
 
 [dev-packages]
 
