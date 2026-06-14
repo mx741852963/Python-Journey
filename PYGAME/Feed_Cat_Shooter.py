@@ -1,0 +1,313 @@
+import random
+
+import pygame as pg
+
+pg.init()
+w = 1000
+h = 700
+screen = pg.display.set_mode((w, h))
+pg.display.set_caption("PyGame Game")
+clock = pg.time.Clock()
+running = [True]
+
+
+# Define a food class
+class Food(pg.sprite.Sprite):
+    def __init__(self, x, y, color=("green", 1)):
+        super().__init__()
+        self.color = color
+        self.image = pg.Surface((40, 40), pg.SRCALPHA)
+        pg.draw.circle(self.image, color[0], (20, 20), 20)
+        self.rect = self.image.get_rect()
+        self.position = pg.Vector2(x, y)
+        self.velocity = pg.Vector2(random.randint(50, 400), random.randint(50, 400))
+        self.rect.topleft = self.position
+        # Create Random Motion
+        self.dx = random.choice([-1, 1])
+        self.dy = random.choice([-1, 1])
+
+    def update(self, dt):
+        self.position.y += self.velocity.y * dt * self.dy
+        self.position.x += self.velocity.x * dt * self.dx
+
+        self.rect.x, self.rect.y = int(self.position.x), int(self.position.y)
+        if self.rect.top > h:
+            self.kill()
+        # Keep from leaving the screen
+        if self.rect.left < 0:
+            self.rect.left = 0
+            self.position.x = float(self.rect.x)
+            self.dx = 1
+
+        elif self.rect.right > 1000:
+            self.rect.right = 1000
+            self.position.x = float(self.rect.x)
+            self.dx = -1
+
+        if self.rect.top < 100:
+            self.rect.top = 100
+            self.position.y = float(self.rect.y)
+            self.dy = 1
+        elif self.rect.bottom > 600:
+            self.rect.bottom = 600
+            self.position.y = float(self.rect.y)
+            self.dy = -1
+
+
+# Define a cat class
+CAT_IMAGE = pg.image.load("cat.png")
+CAT_ClAW = pg.image.load("claw3.png")
+
+
+class Claw(pg.sprite.Sprite):
+    def __init__(self, x, y):
+        super().__init__()
+        # Define our image
+        self.image = CAT_ClAW
+        self.rect = self.image.get_rect()
+        self.position = pg.Vector2(x, y)
+        self.velocity = pg.Vector2(0, -600)
+        self.rect.topleft = self.position
+
+    def update(self, dt):
+        self.position.y += self.velocity.y * dt
+        self.rect.y = int(self.position.y)
+        if self.rect.bottom < 120:
+            self.kill()
+
+
+class Cat(pg.sprite.Sprite):
+    def __init__(self, x, y):
+        super().__init__()
+        # Define our image
+        self.claw_group = pg.sprite.Group()
+        self.image = CAT_IMAGE
+        self.rect = self.image.get_rect()
+        self.position = pg.Vector2(x, y)
+        self.velocity = pg.Vector2(300, 300)
+        self.rect.topleft = self.position
+        self.shoot_cooldown = 0
+
+    def update(self, dt):
+        self.move(dt)
+        self.shoot(dt)
+
+    def move(self, dt):
+        keys = pg.key.get_pressed()
+        if keys[pg.K_a] and self.position.x > 0:
+            self.position.x -= self.velocity.x * dt
+        if keys[pg.K_d] and self.position.x < w - self.rect.width:
+            self.position.x += self.velocity.x * dt
+        self.rect.x = int(self.position.x)
+        self.rect.y = int(self.position.y)
+
+    def shoot(self, dt):
+        keys = pg.key.get_pressed()
+        if self.shoot_cooldown > 0:
+            self.shoot_cooldown -= 1000 * dt  # Convert dt to milliseconds
+        else:
+            if keys[pg.K_SPACE] or pg.mouse.get_pressed()[0]:
+                self.claw_group.add(
+                    Claw(self.rect.centerx - CAT_ClAW.get_width() // 2, self.rect.top)
+                )
+                self.shoot_cooldown = 200
+
+
+# Define a Game class
+class Game:
+    def __init__(self):
+        self.food_group = pg.sprite.Group()
+        self.cat_group = pg.sprite.Group()
+        self.spawn_initial_entities()
+        self.is_paused = False
+        self.is_winner = False
+        self.is_lose = False
+        self.score = 0
+        self.lives = 5
+        # Define Fonts
+        self.lose_font = pg.font.SysFont("Arial", 40, bold=True)
+        self.lose_text = self.lose_font.render("LOSE", True, "black")
+        self.lose_rect = self.lose_text.get_rect()
+        self.lose_rect.center = (1000 // 2, 700 // 2 - 30)
+        self.pause_font = pg.font.SysFont("Arial", 40, bold=True)
+        self.pause_text = self.pause_font.render("PAUSE", True, "red")
+        self.pause_rect = self.pause_text.get_rect()
+        self.pause_rect.center = (1000 // 2, 700 // 2)
+        self.score_font = pg.font.SysFont("Arial", 40, bold=True)
+        self.score_text = self.score_font.render(
+            "Score " + str(self.score), True, "red"
+        )
+        self.score_rect = self.score_text.get_rect()
+        self.score_rect.topleft = (5, 5)
+        self.lives_font = pg.font.SysFont("Arial", 40, bold=True)
+        self.lives_text = self.lives_font.render(
+            "Lives " + str(self.lives), True, "red"
+        )
+        self.lives_rect = self.lives_text.get_rect()
+        self.lives_rect.topright = (990, 10)
+        self.win_font = pg.font.SysFont("Arial", 40, bold=True)
+        self.win_text = self.win_font.render("YOU WIN!!!", True, "red")
+        self.win_rect = self.win_text.get_rect()
+        self.win_rect.center = (1000 // 2, 700 // 2 - 30)
+        self.restart_text = self.win_font.render(
+            "Press R to Restart or Q to Quit", True, "red"
+        )
+        self.restart_rect = self.restart_text.get_rect()
+        self.restart_rect.center = (1000 // 2, 700 // 2 + 30)
+        self.feed_font = pg.font.SysFont("Arial", 40, bold=True)
+        self.feed_text = self.feed_font.render("FEED THE CAT", True, "blue")
+        self.feed_rect = self.feed_text.get_rect()
+        self.feed_rect.centerx = 1000 // 2
+        # Define Sounds
+        self.score_sound = pg.mixer.Sound(
+            r"C:\Users\ahmad\Desktop\Python-Journey\PYGAME\sound\pickup.wav"
+        )
+        self.g_o_sound = pg.mixer.Sound(
+            r"C:\Users\ahmad\Desktop\Python-Journey\PYGAME\sound\game_over.wav"
+        )
+        self.lose_sound = pg.mixer.Sound(
+            r"C:\Users\ahmad\Desktop\Python-Journey\PYGAME\sound\losing.wav"
+        )
+        pg.mixer.music.load(
+            r"C:\Users\ahmad\Desktop\Python-Journey\PYGAME\sound\bg.wav"
+        )
+        pg.mixer.music.play(-1)
+        self.boundary = pg.Surface((1000, 700), pg.SRCALPHA)
+        self.rect = pg.Rect(0, 0, 1000, 500)
+        self.rect.center = (1000 // 2, 700 // 2)
+        pg.draw.rect(self.boundary, "blue", self.rect, 2)
+        self.boundary_rect = self.boundary.get_rect()
+
+    def spawn_initial_entities(self):
+        red = ("red", -1)
+        green = ("green", 1)
+
+        for i in range(20):
+            choice = random.choice([red, green])
+            food = Food(40 + 40 * i, 200, choice)
+            self.food_group.add(food)
+        self.cat = Cat(200, 600)
+        self.cat_group.add(self.cat)
+
+    def update(self, dt):
+        keys = pg.key.get_pressed()
+        if keys[pg.K_p]:
+            self.is_paused = True
+        if self.is_paused:
+            if keys[pg.K_RETURN]:
+                self.is_paused = False
+            return
+        if self.is_winner:
+            if keys[pg.K_q]:
+                running[0] = False
+            if keys[pg.K_r]:
+                self.is_winner = False
+                self.reset_game()
+                pg.mixer.music.play(-1)
+            return
+        if self.is_lose:
+            if keys[pg.K_q]:
+                running[0] = False
+            if keys[pg.K_r]:
+                self.is_lose = False
+                self.reset_game()
+                pg.mixer.music.play(-1)
+            return
+        self.check_collision()
+        self.cat_group.update(dt)
+        self.food_group.update(dt)
+        self.cat.claw_group.update(dt)
+
+    def check_collision(self):
+        collisions = pg.sprite.groupcollide(
+            self.cat.claw_group, self.food_group, True, True
+        )
+        for food_list in collisions.values():
+            food = food_list[0]
+            color_name, point_value = food.color
+            self.score += point_value
+            self.food_group.add(
+                Food(random.randint(0, 800), random.randint(200, 550), ("red", -1))
+            )
+            self.score_sound.play()
+            if self.score < 0:
+                self.score = 0
+                self.lives -= 1
+                self.reset_cat()
+                self.lose_sound.play()
+                self.lives_text = self.lives_font.render(
+                    "Lives " + str(self.lives), True, "red"
+                )
+            self.score_text = self.score_font.render(
+                "Score " + str(self.score), True, "red"
+            )
+        green_food_count = len(
+            [food for food in self.food_group if food.color[0] == "green"]
+        )
+        if green_food_count == 0 and self.score > 0:
+            self.is_winner = True
+            self.win()
+        if self.lives == 0:
+            self.is_lose = True
+            self.lose()
+            self.g_o_sound.play()
+
+    def reset_cat(self):
+        self.cat.position.x, self.cat.position.y = w // 2, 600
+
+    def reset_game(self):
+        self.cat_group.empty()
+        self.food_group.empty()
+        self.cat.claw_group.empty()
+        self.spawn_initial_entities()
+        self.reset_cat()
+        self.lives = 5
+        self.score = 0
+        self.score_text = self.score_font.render(
+            "Score " + str(self.score), True, "red"
+        )
+        self.lives_text = self.lives_font.render(
+            "Lives " + str(self.lives), True, "red"
+        )
+
+    def win(self):
+        pg.mixer.music.stop()
+        self.cat_group.empty()
+        self.food_group.empty()
+        self.cat.claw_group.empty()
+
+    def lose(self):
+        pg.mixer.music.stop()
+
+    def draw(self, surface):
+        surface.blit(self.boundary, self.boundary_rect)
+        surface.blit(self.lives_text, self.lives_rect)
+        surface.blit(self.score_text, self.score_rect)
+        surface.blit(self.feed_text, self.feed_rect)
+        self.cat_group.draw(surface)
+        self.cat.claw_group.draw(surface)
+        self.food_group.draw(surface)
+        if self.is_paused:
+            surface.blit(self.pause_text, self.pause_rect)
+        if self.is_winner:
+            surface.blit(self.win_text, self.win_rect)
+            surface.blit(self.restart_text, self.restart_rect)
+        if self.is_lose:
+            surface.blit(self.lose_text, self.lose_rect)
+            surface.blit(self.restart_text, self.restart_rect)
+
+
+our_game = Game()
+while running[0]:
+    delta_time = clock.tick(60) / 1000.0
+    for event in pg.event.get():
+        if event.type == pg.QUIT:  # X
+            running[0] = False
+
+    # Draw cat and food group
+    our_game.update(delta_time)
+    screen.fill("silver")
+    our_game.draw(screen)
+    pg.display.flip()
+
+pg.quit()
