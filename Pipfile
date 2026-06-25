@@ -9,12 +9,10 @@ pandas = "*"
 numpy = "*"
 ipykernel = "*"
 yt-dlp = { extras = ["default"], version = "*" }
-customtkinter = "*"
 seaborn = "*"
 yfinance = "*"
 black = "*"
 pyinstaller = "*"
-manim = "*"
 binarytree = "*"
 setuptools = "*"
 twentytab-tree = "*"
@@ -22,8 +20,9 @@ openpyxl = "*"
 pillow = "*"
 pytmx = "*"
 pygame-ce = "*"
+customtkinter = "*"
 
 [dev-packages]
 
 [requires]
-python_version = "3.12"
+python_version = "3.14"
